@@ -58,7 +58,12 @@ android {
 
 
 
-
+tasks.register("generateFiles11") {
+    doLast {
+        // 在这里定义任务的具体逻辑
+        println("Running generateFiles task")
+    }
+}
 tasks.register("generateFiles") {
     doLast {
         val layoutDir = File("src/main/res/layout")
@@ -86,6 +91,7 @@ tasks.register("generateFiles") {
                         )
                     }*/
             }
+        generateClass()
     }
 }
 
@@ -132,8 +138,8 @@ fun generateSettingItemClass(settingRootName: String, settingName: String, file:
 }
 
 fun generateClass() {
-    val settingUserClass = com.squareup.javapoet.ClassName.get("com.xicai.cfgtest", "SettingUser")
-    val settingNodeClass = com.squareup.javapoet.ClassName.get("com.xicai.cfgtest", "SettingNode")
+    val settingUserClass = ClassName.get("com.xicai.cfgtest", "SettingUser")
+    val settingNodeClass = ClassName.get("com.xicai.cfgtest", "SettingNode")
 
     val nodeNameField = FieldSpec.builder(String::class.java, "nodeName")
         .addModifiers(Modifier.PUBLIC)
@@ -157,15 +163,16 @@ fun generateClass() {
         .addField(parentField)
         .build()
 
-    val javaFile = JavaFile.builder("com.xicai.cfgtest", settingNode)
-        .build()
-
-    val outputPath = "build/generated/settingtree/output"
+    val outputPath = "build${File.separator}generated${File.separator}settingtree${File.separator}output"
     val outputDir = File(outputPath)
     outputDir.mkdirs()
 
+    val javaFile = JavaFile.builder("com.xicai.cfgtest", settingNode)
+        .build()
+
     // 将生成的 Java 文件写入指定目录
     javaFile.writeTo(outputDir)
+    println("Running generateFiles task  finish output = ${outputDir.absoluteFile}")
 }
 dependencies {
 
