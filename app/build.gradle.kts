@@ -29,7 +29,7 @@ android {
 
     defaultConfig {
         applicationId = "com.xicai.cfgtest"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 33
         versionCode = 1
         versionName = "1.0"
@@ -64,6 +64,15 @@ tasks.register("generateFiles11") {
         println("Running generateFiles task")
     }
 }
+
+
+tasks.register("abc") {
+    doLast {
+        // 在这里定义任务的具体逻辑
+        println("Running generateFiles task")
+    }
+}
+
 tasks.register("generateFiles") {
     doLast {
         val layoutDir = File("src/main/res/layout")
@@ -171,9 +180,16 @@ fun generateClass() {
         .build()
 
     // 将生成的 Java 文件写入指定目录
-    javaFile.writeTo(outputDir)
-    println("Running generateFiles task  finish output = ${outputDir.absoluteFile}")
+    val currentDir = File("").absoluteFile
+    val outputDirPath = "${currentDir}${File.separator}${outputPath}"
+    val outputDirCurrent = File(outputDirPath)
+    outputDirCurrent.mkdirs()
+    val javaFileOutput = File(outputDirCurrent, "SettingNode.java")
+    javaFile.writeTo(javaFileOutput)
+    println("Running generateFiles task  finish output = ${outputDirCurrent.absoluteFile}")
 }
+
+
 dependencies {
 
     implementation("androidx.core:core-ktx:1.9.0")
@@ -182,10 +198,10 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
-    implementation("com.android.tools.build:gradle:7.0.2")
-    implementation("androidx.databinding:databinding-compiler-common:7.0.2")
-    implementation("androidx.databinding:databinding-common:7.0.2")
-    implementation("com.android.databinding:baseLibrary:7.0.2")
+   // implementation("com.android.tools.build:gradle:7.0.2")
+   // implementation("androidx.databinding:databinding-compiler-common:8.1.0")
+   // implementation("androidx.databinding:databinding-common:8.1.0")
+   // implementation("com.android.databinding:baseLibrary:8.1.0")
 
 
 }
