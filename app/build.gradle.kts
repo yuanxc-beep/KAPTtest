@@ -1,11 +1,9 @@
-import com.android.utils.forEach
 import org.w3c.dom.Element
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
 import com.squareup.javapoet.JavaFile
 import com.squareup.javapoet.FieldSpec
 import com.squareup.javapoet.TypeSpec
-import com.squareup.javapoet.TypeName
 import com.squareup.javapoet.ClassName
 import javax.lang.model.element.Modifier
 
@@ -72,38 +70,41 @@ tasks.register("abc") {
         println("Running generateFiles task")
     }
 }
-
+//val classMap = kotlin.collections.hashMapOf<String,String>()
 tasks.register("generateFiles") {
     doLast {
-        val layoutDir = File("src/main/res/layout")
+        val layoutDir = project.projectDir.resolve("src/main/res/layout")
         layoutDir.listFiles { file -> file.name.endsWith(".xml") }
             ?.filter { hasSettingRootAttribute(it) }
             ?.forEach { file ->
                 val xmlDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file)
-                val settingRootName = xmlDoc.documentElement.getAttribute("settingRoot")
+                val settingRootName = xmlDoc.documentElement.getAttribute("settingRoot") //找到xml的根节点
 
-                generateSettingRootClass(settingRootName, file)
-                    traverseNode(element =  xmlDoc.documentElement,
-                        isOk = {element ->
-                            element.attributes.getNamedItem("settingName") != null
-                        },
-                        block = { element ->
+               // generateSettingRootClass(settingRootName, file)
+                traverseNode(element =  xmlDoc.documentElement,
+                    isOk = {element ->
+                        val node =   element.attributes.getNamedItem("app:settingItem")   //找到一个节点
+                        println("traverseNode check node is OK node = ${node.nodeValue}")
+                        node!=null
+                    },
+                    block = { element ->
+                        generateNodeClass(className = element.attributes.getNamedItem("app:settingItem").nodeValue,
+                            userType = element.attributes.getNamedItem("app:user").nodeValue,
+                            route = element.attributes.getNamedItem("app:route").nodeValue)
+                    })
 
-                        })
-
-                  /*  .filter { it is Element && it.getAttribute("settingName").isNotEmpty() }
-                    .forEach { settingName ->
-                        generateSettingItemClass(
-                            settingRootName,
-                            settingName.getAttribute("settingName"),
-                            file
-                        )
-                    }*/
+                /*  .filter { it is Element && it.getAttribute("settingName").isNotEmpty() }
+                  .forEach { settingName ->
+                      generateSettingItemClass(
+                          settingRootName,
+                          settingName.getAttribute("settingName"),
+                          file
+                      )
+                  }*/
             }
-        generateClass()
+       // generateNodeClass()
     }
 }
-
 // 假设 rootElement 是 XML 文档的根节点
 fun traverseNode(element: Element,isOk:(Element)->Boolean,block:(Element)->Unit){
     val childNodes = element.childNodes
@@ -122,8 +123,11 @@ fun traverseNode(element: Element,isOk:(Element)->Boolean,block:(Element)->Unit)
 
 
 fun hasSettingRootAttribute(file: File): Boolean {
+
     val xmlDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file)
-    return xmlDoc.documentElement.attributes.getNamedItem("settingRoot") != null
+    val node =  xmlDoc.documentElement.attributes.getNamedItem("app:settingRoot")
+    println("check file ${file.absoluteFile} hasRoot:${node != null}")
+    return node != null
 }
 
 fun generateSettingRootClass(settingRootName: String, file: File) {
@@ -146,10 +150,12 @@ fun generateSettingItemClass(settingRootName: String, settingName: String, file:
     File("src/main/java/com/example/$settingItemClassName.kt").writeText(classContent)
 }
 
-fun generateClass() {
+fun generateNodeClass(className:String, //类名
+                      userType:String,  //类权限
+                      route:String,//route
+                      ) {
     val settingUserClass = ClassName.get("com.xicai.cfgtest", "SettingUser")
     val settingNodeClass = ClassName.get("com.xicai.cfgtest", "SettingNode")
-
     val nodeNameField = FieldSpec.builder(String::class.java, "nodeName")
         .addModifiers(Modifier.PUBLIC)
         .initializer("null")
@@ -170,23 +176,19 @@ fun generateClass() {
         .addField(nodeNameField)
         .addField(userField)
         .addField(parentField)
+        .superclass(settingNodeClass)
         .build()
 
-    val outputPath = "build${File.separator}generated${File.separator}settingtree${File.separator}output"
-    val outputDir = File(outputPath)
+    val outputDir =  project.projectDir.resolve("build${File.separator}generated${File.separator}settingtree${File.separator}output")
     outputDir.mkdirs()
 
     val javaFile = JavaFile.builder("com.xicai.cfgtest", settingNode)
         .build()
 
     // 将生成的 Java 文件写入指定目录
-    val currentDir = File("").absoluteFile
-    val outputDirPath = "${currentDir}${File.separator}${outputPath}"
-    val outputDirCurrent = File(outputDirPath)
-    outputDirCurrent.mkdirs()
-    val javaFileOutput = File(outputDirCurrent, "SettingNode.java")
+    val javaFileOutput = File(outputDir, "setting_node")
     javaFile.writeTo(javaFileOutput)
-    println("Running generateFiles task  finish output = ${outputDirCurrent.absoluteFile}")
+    println("Running generateFiles task  finish output = ${outputDir.absoluteFile}")
 }
 
 
