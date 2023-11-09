@@ -1,15 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <?xml version="1.0" encoding="utf-8"?>
-    <resources>
-        <attr name="settingRoot" format="string" />
-        <attr name="settingItem" format="string" />
-        <attr name="user" format="enum">
-            <enum name="operator" value="0" />
-            <enum name="admin" value="1" />
-        </attr>
-        <attr name="route" format="string" />
-    </resources>
-
+    <attr name="settingRoot" format="string" />
+    <attr name="settingItem" format="string" />
+    <attr name="user" format="enum">
+        <enum name="Operator" value="0" />
+        <enum name="Admin" value="1" />
+    </attr>
+    <attr name="route" format="string" />
 
 </resources>

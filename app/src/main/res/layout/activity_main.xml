@@ -7,9 +7,9 @@
     <TextView
         android:id="@+id/text_yuan"
         android:text="洗菜洗菜"
-        app:settingItem = "settingName"
-        app:route="navRoute_text"
-        app:user="operator"
+        app:settingItem = "SettingReceipt"
+        app:route="consume_setting"
+        app:user="Operator"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

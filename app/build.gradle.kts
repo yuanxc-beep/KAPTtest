@@ -78,7 +78,8 @@ tasks.register("generateFiles") {
             ?.filter { hasSettingRootAttribute(it) }
             ?.forEach { file ->
                 val xmlDoc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file)
-                val settingRootName = xmlDoc.documentElement.getAttribute("settingRoot") //找到xml的根节点
+                val settingRootName = xmlDoc.documentElement.getAttribute("app:settingRoot") //找到xml的根节点
+                println("get one root, settingRoot = $settingRootName")
 
                // generateSettingRootClass(settingRootName, file)
                 traverseNode(element =  xmlDoc.documentElement,
@@ -90,7 +91,9 @@ tasks.register("generateFiles") {
                     block = { element ->
                         generateNodeClass(className = element.attributes.getNamedItem("app:settingItem").nodeValue,
                             userType = element.attributes.getNamedItem("app:user").nodeValue,
-                            route = element.attributes.getNamedItem("app:route").nodeValue)
+                            route = element.attributes.getNamedItem("app:route").nodeValue,
+                            parent = settingRootName)
+
                     })
 
                 /*  .filter { it is Element && it.getAttribute("settingName").isNotEmpty() }
@@ -153,26 +156,30 @@ fun generateSettingItemClass(settingRootName: String, settingName: String, file:
 fun generateNodeClass(className:String, //类名
                       userType:String,  //类权限
                       route:String,//route
+                        parent:String //父类
                       ) {
     val settingUserClass = ClassName.get("com.xicai.cfgtest", "SettingUser")
     val settingNodeClass = ClassName.get("com.xicai.cfgtest", "SettingNode")
     val nodeNameField = FieldSpec.builder(String::class.java, "nodeName")
         .addModifiers(Modifier.PUBLIC)
-        .initializer("null")
+        .initializer(route)
         .build()
 
     val userField = FieldSpec.builder(settingUserClass, "user")
         .addModifiers(Modifier.PUBLIC)
-        .initializer("\$T.Operator", settingUserClass)
+        .addModifiers(Modifier.STATIC)
+        .initializer("SettingUser.$userType")
         .build()
 
     val parentField = FieldSpec.builder(settingNodeClass, "parent")
         .addModifiers(Modifier.PUBLIC)
-        .initializer("null")
+        .addModifiers(Modifier.STATIC)
+        .initializer(parent)
         .build()
 
-    val settingNode = TypeSpec.classBuilder("SettingNode")
+    val settingNode = TypeSpec.classBuilder(className)
         .addModifiers(Modifier.PUBLIC)
+        .addModifiers(Modifier.STATIC)
         .addField(nodeNameField)
         .addField(userField)
         .addField(parentField)
